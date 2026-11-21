@@ -54,7 +54,9 @@ def per_seed_metrics(scores, splits):
                     lo, hi = bootstrap_ci(auroc, g.label, g.score, n=1000, seed=seed)
                 rows.append({"condition": cond, "source": src, "seed": seed, "auroc": a,
                              "auroc_lo": lo, "auroc_hi": hi, "threshold": thr,
-                             "acc_common_thr": acc_at(g.label, g.score, thr), "n": len(g),
+                             "acc_common_thr": acc_at(g.label, g.score, thr),
+                             "tpr_common_thr": float((g.score[g.label == 1] >= thr).mean()),
+                             "fpr_common_thr": float((g.score[g.label == 0] >= thr).mean()), "n": len(g),
                              "n_pos": int(g.label.sum())})
     return pd.DataFrame(rows)
 
@@ -62,7 +64,8 @@ def per_seed_metrics(scores, splits):
 def condition_table(m):
     t = m.groupby(["condition", "source"]).agg(
         auroc_mean=("auroc", "mean"), auroc_std=("auroc", "std"),
-        acc_mean=("acc_common_thr", "mean"), acc_std=("acc_common_thr", "std"), n=("n", "mean")
+        acc_mean=("acc_common_thr", "mean"), acc_std=("acc_common_thr", "std"),
+        tpr_mean=("tpr_common_thr", "mean"), fpr_mean=("fpr_common_thr", "mean"), n=("n", "mean")
     ).reset_index()
     ctrl = t[t.source == CONTROL].set_index("condition")["acc_mean"]
     t["gap_vs_control"] = t["condition"].map(ctrl) - t["acc_mean"]
