@@ -6,7 +6,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
-import statsmodels.formula.api as smf  # noqa: E402
 
 from rhw import config, data  # noqa: E402
 from rhw.metrics import acc_at, auroc, bootstrap_ci, common_threshold, paired_bootstrap_diff  # noqa: E402
@@ -76,6 +75,8 @@ def best_window(t):
 
 
 def length_regression(scores, splits, m, conds):
+    import statsmodels.formula.api as smf
+
     rows = []
     for cond in conds:
         d = split(scores[cond], splits[0]).copy()

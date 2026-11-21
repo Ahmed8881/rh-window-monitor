@@ -1,0 +1,2 @@
+model,condition,n_units,detector_calls,gpu_seconds
+Qwen/Qwen2.5-7B-Instruct,full,3226,3226,8531.4
