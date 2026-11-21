@@ -1,0 +1,5 @@
+source,n_units,n_pos,n_neg,median_turns,median_tokens,pct_truncated,n_scored_any_seed
+control,2046,1073,973,2.0,167.0,0.0,1851
+malt,348,62,286,48.5,12948.5,68.4,348
+malt_prompted,510,224,286,42.5,10548.0,69.4,510
+trace,517,268,249,44.0,10470.0,88.4,517
