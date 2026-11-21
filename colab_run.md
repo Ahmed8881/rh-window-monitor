@@ -9,7 +9,7 @@ Runtime -> Change runtime type -> T4 GPU. Paste each block into its own cell.
 ```
 
 ```python
-# only needed if a dataset is gated for your account
+# required: TRACE is gated (accept its terms on the HF page first)
 from huggingface_hub import notebook_login
 notebook_login()
 ```
