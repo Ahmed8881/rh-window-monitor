@@ -25,7 +25,7 @@ def auroc_vs_length(scores, ids, best):
     edges = np.quantile(agent.n_tokens, [0, 0.25, 0.5, 0.75, 1.0])
     rows = []
     fig, ax = plt.subplots(figsize=(6, 4))
-    for cond in ("full", best):
+    for cond in [c for c in ("full", best) if c]:
         d = split(scores[cond], ids)
         d = d[d.source.isin(AGENT_SOURCES)]
         bins = pd.cut(d.n_tokens, edges, include_lowest=True, labels=False)
@@ -66,7 +66,7 @@ def gap_by_condition():
 def roc_malt_trace(scores, ids, best):
     fig, axes = plt.subplots(1, len(AGENT_SOURCES), figsize=(10, 4))
     for ax, src in zip(axes, AGENT_SOURCES):
-        for cond in ("full", best):
+        for cond in [c for c in ("full", best) if c]:
             d = split(scores[cond], ids)
             d = d[d.source == src]
             if d.label.nunique() < 2:
@@ -87,7 +87,9 @@ if __name__ == "__main__":
     units = data.load_units()
     ids = data.sample_split(units, 0)
     scores = load_scores()
-    best = pd.read_csv(R / "best_window.csv")["best_window"].iloc[0]
+    # before any windowed condition is scored, plot the full condition alone
+    bw = R / "best_window.csv"
+    best = pd.read_csv(bw)["best_window"].iloc[0] if bw.exists() else None
     auroc_vs_length(scores, ids, best)
     gap_by_condition()
     roc_malt_trace(scores, ids, best)
