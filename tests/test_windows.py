@@ -21,7 +21,7 @@ def make_unit(n_rest, words=3):
         tool = i % 2 == 1
         turns.append({"role": "tool" if tool else "assistant",
                       "content": f"t{i} " + "w " * words, "is_tool": tool})
-    return {"turns": turns}
+    return {"turns": turns, "n_task": 2}
 
 
 def test_sliding_covers_every_index():

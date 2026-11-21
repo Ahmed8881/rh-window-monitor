@@ -12,10 +12,9 @@ def render_turn(t):
 
 
 def split_task(unit):
-    """(task turns, remaining turns). Task = everything up to and including the first user turn."""
-    turns = unit["turns"]
-    i = next((j for j, t in enumerate(turns) if t["role"] == "user"), 0)
-    return turns[: i + 1], turns[i + 1:]
+    """(task turns, remaining turns). The first n_task turns state the task."""
+    n = unit["n_task"]
+    return unit["turns"][:n], unit["turns"][n:]
 
 
 def clip(text, tok, n_omitted=None):
