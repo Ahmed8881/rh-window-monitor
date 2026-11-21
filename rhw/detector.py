@@ -51,7 +51,9 @@ class Detector:
                                               add_generation_prompt=True)
         ids = self.tok(prompt, return_tensors="pt").input_ids.to(self.model.device)
         with self.torch.no_grad():
-            logits = self.model(ids).logits[0, -1].float()
+            # project only the last position: full logits for 7k tokens x 152k vocab would not fit on a T4
+            h = self.model.base_model(input_ids=ids).last_hidden_state[0, -1]
+            logits = self.model.get_output_embeddings()(h).float()
         two = self.torch.softmax(logits[[self.yes, self.no]], dim=0)
         return float(two[0])
 
