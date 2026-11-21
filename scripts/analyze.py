@@ -83,12 +83,14 @@ def length_regression(scores, splits, m, conds):
         thr = m[(m.condition == cond) & (m.seed == 0)]["threshold"].iloc[0]
         d["correct"] = ((d.score >= thr).astype(int) == d.label).astype(int)
         d["log_tokens"] = np.log(d.n_tokens)
-        fit = smf.logit("correct ~ log_tokens + C(source)", data=d).fit(disp=0)
-        ci = fit.conf_int()
-        for term in fit.params.index:
-            rows.append({"condition": cond, "term": term, "coef": fit.params[term],
-                         "ci_lo": ci.loc[term, 0], "ci_hi": ci.loc[term, 1],
-                         "p_value": fit.pvalues[term], "n": int(fit.nobs)})
+        # second spec adds the label: an always-NO detector is "correct" on every negative
+        for formula in ("correct ~ log_tokens + C(source)", "correct ~ log_tokens + C(source) + label"):
+            fit = smf.logit(formula, data=d).fit(disp=0)
+            ci = fit.conf_int()
+            for term in fit.params.index:
+                rows.append({"condition": cond, "formula": formula, "term": term,
+                             "coef": fit.params[term], "ci_lo": ci.loc[term, 0], "ci_hi": ci.loc[term, 1],
+                             "p_value": fit.pvalues[term], "n": int(fit.nobs)})
     return pd.DataFrame(rows)
 
 
@@ -121,6 +123,20 @@ def truncated_subset(scores, splits):
     return pd.DataFrame(rows)
 
 
+def trace_categories(df):
+    """AUROC of each TRACE hack subcategory (codes like 1.1.2) against all clean TRACE runs."""
+    d = df[df.source == "trace"]
+    neg = d[d.label == 0]
+    pos = d[d.label == 1].assign(code=lambda x: x.category.str.split(r",\s*")).explode("code")
+    rows = []
+    for code, g in pos.groupby("code"):
+        y = np.r_[np.ones(len(g)), np.zeros(len(neg))]
+        s = np.r_[g.score.values, neg.score.values]
+        rows.append({"code": code, "n_pos": len(g), "n_neg": len(neg), "auroc": auroc(y, s),
+                     "mean_score_pos": g.score.mean(), "median_tokens_pos": g.n_tokens.median()})
+    return pd.DataFrame(rows).sort_values("code")
+
+
 def main():
     units = data.load_units()
     splits = {s: data.sample_split(units, s) for s in config.SEEDS}
@@ -137,8 +153,10 @@ def main():
     t = condition_table(m)
     t.to_csv(R / "conditions.csv", index=False)
     print(t.to_string(index=False))
+    trace_categories(scores["full"]).to_csv(R / "trace_categories.csv", index=False)
     if len(scores) == 1:
         print("only the full condition is scored; skipping window comparisons")
+        length_regression(scores, splits, m, ["full"]).to_csv(R / "length_regression.csv", index=False)
         return
     best = best_window(t)
     print(f"best windowed condition (mean MALT+TRACE AUROC): {best}")
