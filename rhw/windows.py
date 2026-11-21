@@ -17,40 +17,44 @@ def split_task(unit):
     return unit["turns"][:n], unit["turns"][n:]
 
 
-def clip(text, tok, n_omitted=None):
-    """Head+tail truncation so the result stays within MAX_TOKENS. Returns (text, truncated)."""
-    ids = tok.encode(text)
-    if len(ids) <= config.MAX_TOKENS:
+# a token is never longer than this many characters in practice; bounds how much text we tokenize
+MAX_CHARS_PER_TOKEN = 40
+
+
+def clip(text, tok, turn_spans=None):
+    """Head+tail truncation so the result stays within MAX_TOKENS. Returns (text, truncated).
+    turn_spans: (start, end) char offsets of turns in text, used to count omitted turns."""
+    probe = MAX_CHARS_PER_TOKEN * config.MAX_TOKENS
+    # only tokenize bounded slices: MALT transcripts reach tens of millions of characters
+    if len(text) <= 2 * probe and len(tok.encode(text)) <= config.MAX_TOKENS:
         return text, False
-    what = f"{n_omitted} turns" if n_omitted is not None else "text"
-    marker = f"\n[... {what} omitted ...]\n"
-    tail = config.MAX_TOKENS - config.HEAD_TOKENS - len(tok.encode(marker))
-    return tok.decode(ids[: config.HEAD_TOKENS]) + marker + tok.decode(ids[-tail:]), True
+    marker_budget = len(tok.encode("\n[... 000000 turns omitted ...]\n"))
+    n_tail = config.MAX_TOKENS - config.HEAD_TOKENS - marker_budget
+    head = tok.decode(tok.encode(text[:probe])[: config.HEAD_TOKENS])
+    tail = tok.decode(tok.encode(text[-probe:])[-n_tail:])
+    what = "text"
+    if turn_spans is not None:
+        lo, hi = len(head), len(text) - len(tail)
+        what = f"{sum(1 for a, b in turn_spans if a >= lo and b <= hi)} turns"
+    return head + f"\n[... {what} omitted ...]\n" + tail, True
 
 
 def _join(turns):
     return "\n\n".join(render_turn(t) for t in turns)
 
 
-def _omitted_turns(unit, tok):
-    """Number of turns that fall entirely inside the dropped middle of a clipped transcript."""
-    lens = [len(tok.encode(render_turn(t))) for t in unit["turns"]]
-    total = sum(lens)
-    head_end, tail_start = config.HEAD_TOKENS, total - (config.MAX_TOKENS - config.HEAD_TOKENS)
-    pos, n = 0, 0
-    for L in lens:
-        if pos >= head_end and pos + L <= tail_start:
-            n += 1
-        pos += L
-    return n
+def _spans(turns):
+    spans, pos = [], 0
+    for t in turns:
+        n = len(render_turn(t))
+        spans.append((pos, pos + n))
+        pos += n + 2
+    return spans
 
 
 def full_view(unit, tok):
     """(text, truncated) for the whole transcript."""
-    text = _join(unit["turns"])
-    if len(tok.encode(text)) <= config.MAX_TOKENS:
-        return text, False
-    return clip(text, tok, _omitted_turns(unit, tok))
+    return clip(_join(unit["turns"]), tok, _spans(unit["turns"]))
 
 
 def full(unit, tok):

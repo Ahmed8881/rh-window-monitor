@@ -79,3 +79,12 @@ def test_truncation_respects_max_tokens():
 def test_short_unit_not_truncated():
     text, truncated = windows.full_view(make_unit(3), TOK)
     assert not truncated and "t2 " in text
+
+
+def test_huge_transcript_bounded_tokenization():
+    u = make_unit(2000, words=200)  # ~800k chars, more than 2 x the probe size
+    text, truncated = windows.full_view(u, TOK)
+    assert truncated
+    assert len(TOK.encode(text)) <= config.MAX_TOKENS
+    n = int(text.split("[... ")[1].split(" turns")[0])
+    assert 1900 < n < 2000
