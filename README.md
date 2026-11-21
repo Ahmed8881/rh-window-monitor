@@ -118,8 +118,14 @@ positives).
 
 - **Windowed conditions** (`last_2/4/8`, `sliding_2/4/8` with max and mean aggregation, `tool_only`) are
   implemented in `rhw/windows.py` and tested, but have not been scored. `results/conditions.csv`
-  therefore has only the `full` condition, and `results/paired_test.csv` does not exist yet. The
-  cost estimate per condition is in `colab_run.md`.
+  therefore has only the `full` condition, and `results/paired_test.csv` does not exist yet.
+- **Compute and the window cap.** `scripts/estimate_cost.py` scales the measured cost of `full`
+  (8,531 GPU-seconds) to each condition (`results/cost_estimate.csv`). `last_k` and `tool_only` need
+  about 0.4-1.9 GPU-hours each. Uncapped sliding windows would need 34-49 GPU-hours per window size,
+  because some MALT runs have thousands of turns. Following the plan's compute fallback, sliding
+  scores at most 8 windows per unit (`MAX_WINDOWS` in `rhw/config.py`). They are evenly spaced and
+  always include the first and last window, so long trajectories are sampled, not fully covered.
+  With the cap the estimate is 2.9 / 4.2 / 6.2 GPU-hours for w = 2 / 4 / 8.
 - **Size ablation** with Qwen2.5-1.5B-Instruct: not run.
 - The optional 0-100 score-format check (plan task 3.7): not run.
 

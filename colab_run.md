@@ -24,7 +24,7 @@ notebook_login()
 ```python
 # optional: restore a cache from an earlier session so nothing is rescored
 # upload cache.zip with the file browser first
-!unzip -oq cache.zip
+!unzip -oq cache.zip 'cache/*'
 ```
 
 ```python
@@ -33,9 +33,13 @@ notebook_login()
 ```
 
 ```python
-# windowed conditions
-!python scripts/score.py --model Qwen/Qwen2.5-7B-Instruct --condition last_2,last_4,last_8,tool_only
-!python scripts/score.py --model Qwen/Qwen2.5-7B-Instruct --condition sliding_2,sliding_4,sliding_8
+# windowed conditions (restore cache.zip first so full is not recomputed)
+# estimated GPU-hours in results/cost_estimate.csv: about 3.5 for this line
+!python scripts/score.py --condition last_2,last_4,last_8,tool_only
+# about 3 / 4 / 6 hours; run one per session if needed
+!python scripts/score.py --condition sliding_2
+!python scripts/score.py --condition sliding_4
+!python scripts/score.py --condition sliding_8
 ```
 
 ```python
