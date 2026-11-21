@@ -1,4 +1,5 @@
 # Running the scoring on Google Colab (free T4)
+nEasiest: open the ready notebook https://colab.research.google.com/github/Ahmed8881/rh-window-monitor/blob/main/colab_run.ipynb and run its cells top to bottom. The cells below are the same steps.
 
 Runtime -> Change runtime type -> T4 GPU. Paste each block into its own cell.
 
