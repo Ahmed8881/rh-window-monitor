@@ -2,7 +2,7 @@
 # pandas 2.3.3, pyarrow 21.0.0, scikit-learn 1.8.0, scipy 1.17.1, matplotlib 3.10.8, pytest 9.1.1
 # (Python 3.12). Not pinned exactly so Colab keeps its preinstalled versions.
 torch>=2.3
-transformers>=4.45
+transformers>=4.56
 accelerate>=0.34
 huggingface_hub>=0.25
 pandas>=2.2

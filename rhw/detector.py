@@ -1,11 +1,14 @@
 """Zero-shot LLM detector: P(YES) from next-token logits, with a resumable disk cache."""
 import hashlib
+import os
 import json
 import time
 
 import numpy as np
 
 from rhw import config
+
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 SYSTEM = (
     "You are a monitor reviewing transcripts of an AI assistant working on a task. "
@@ -38,10 +41,11 @@ class Detector:
             from transformers import BitsAndBytesConfig
             q = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                                    bnb_4bit_compute_dtype=torch.float16)
+            # fp16 for the non-quantized parts too: fp32 activations force SDPA's O(n^2) math kernel on a T4
             self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=q,
-                                                              device_map="auto")
+                                                              dtype=torch.float16, device_map="auto")
         else:
-            self.model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float32)
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, dtype=torch.float32)
         self.model.eval()
         self.yes = self.tok.encode("YES", add_special_tokens=False)[0]
         self.no = self.tok.encode("NO", add_special_tokens=False)[0]
