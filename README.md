@@ -2,7 +2,32 @@
 
 Tests whether the multi-turn tool-use gap in RH-Detect is a transcript-length effect, using windowed LLM detectors on TRACE and MALT.
 
-Work in progress.
+Work in progress: no results yet.
+
+## Builds on
+
+- Quan, Opryshko, Subramani, Gilitschenski. *RH-Detect: A Unified Benchmark for Reward Hacking Detection.* arXiv 2610.10947, 2026. https://arxiv.org/abs/2610.10947
+- Deshpande, Kannappan, Qian. *Benchmarking Reward Hack Detection in Code Environments via Contrastive Analysis* (TRACE). https://arxiv.org/abs/2601.20103, data: https://huggingface.co/datasets/PatronusAI/trace-dataset
+- METR. *MALT: A Dataset of Natural and Prompted Behaviors That Threaten Eval Integrity.* https://metr.org/blog/2025-10-14-malt-dataset-of-natural-and-prompted-behaviors/, data: https://huggingface.co/datasets/metr-evals/malt-public
+- School of Reward Hacks (control source). https://huggingface.co/datasets/longtermrisk/school-of-reward-hacks
+
+How each source's labels map to 0/1 is in [DATA.md](DATA.md).
+
+## How to run
+
+```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+huggingface-cli login                 # TRACE is gated (auto-approved after accepting its terms)
+python scripts/download.py            # rh-bench (MALT + control) and TRACE -> data/raw/
+python scripts/smoke_test.py          # 0.5B detector on CPU, 3 toy transcripts
+python scripts/build_dataset.py       # data/units.jsonl, results/dataset_stats.csv
+pytest -q
+# scoring needs a GPU: see colab_run.md
+python scripts/score.py --condition full
+python scripts/analyze.py             # results/*.csv
+python scripts/plots.py               # figures/*.png
+```
 
 ## Related code
 
