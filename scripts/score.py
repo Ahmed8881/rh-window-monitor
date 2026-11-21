@@ -14,11 +14,16 @@ from tqdm import tqdm  # noqa: E402
 from rhw import config, data, windows  # noqa: E402
 from rhw.detector import Cache, Detector, aggregate, key  # noqa: E402
 
-
 def scores_path(model, condition):
     suffix = "" if model == config.MAIN_MODEL else "_" + model.split("/")[-1]
     return config.RESULTS_DIR / f"scores_{condition}{suffix}.csv"
 
+def save_cost(row):
+    """Upsert one (model, condition) row, written per condition so a disconnect loses nothing."""
+    path = config.RESULTS_DIR / "cost.csv"
+    old = pd.read_csv(path) if path.exists() else pd.DataFrame(columns=list(row))
+    old = old[~((old.model == row["model"]) & (old.condition == row["condition"]))]
+    pd.concat([old, pd.DataFrame([row])]).to_csv(path, index=False)
 
 def main():
     p = argparse.ArgumentParser()
@@ -40,7 +45,6 @@ def main():
 
     det = Detector(a.model)
     config.RESULTS_DIR.mkdir(exist_ok=True)
-    cost_rows = []
     for name in names:
         cache = Cache(a.model, name)
         rows, seconds, calls = [], 0.0, 0
@@ -55,18 +59,9 @@ def main():
                          "n_windows": len(texts), "score_max": aggregate(s, "max"),
                          "score_mean": aggregate(s, "mean")})
         pd.DataFrame(rows).to_csv(scores_path(a.model, name), index=False)
-        cost_rows.append({"model": a.model, "condition": name, "n_units": len(units),
-                          "detector_calls": calls, "gpu_seconds": round(seconds, 1)})
+        save_cost({"model": a.model, "condition": name, "n_units": len(units),
+                   "detector_calls": calls, "gpu_seconds": round(seconds, 1)})
         print(f"{name}: {len(rows)} units, {calls} calls, {seconds:.0f}s")
-
-    cost_path = config.RESULTS_DIR / "cost.csv"
-    new = pd.DataFrame(cost_rows)
-    if cost_path.exists():
-        old = pd.read_csv(cost_path)
-        old = old[~old.set_index(["model", "condition"]).index.isin(new.set_index(["model", "condition"]).index)]
-        new = pd.concat([old, new])
-    new.to_csv(cost_path, index=False)
-
 
 if __name__ == "__main__":
     main()
