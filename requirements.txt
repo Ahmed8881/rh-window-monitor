@@ -1,0 +1,15 @@
+# versions that ran the tests and build_dataset.py locally (Python 3.12)
+# torch is left unpinned so Colab keeps its CUDA build; >=2.3 needed
+torch>=2.3
+huggingface_hub==1.16.1
+matplotlib==3.10.8
+pandas==2.3.3
+pyarrow==21.0.0
+pytest==9.1.1
+scikit-learn==1.8.0
+scipy==1.17.1
+tqdm==4.67.1
+transformers==5.10.2
+# not installed locally yet; minimum versions from the plan
+accelerate>=0.34
+statsmodels>=0.14

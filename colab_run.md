@@ -5,7 +5,7 @@ Runtime -> Change runtime type -> T4 GPU. Paste each block into its own cell.
 ```python
 !git clone https://github.com/Ahmed8881/rh-window-monitor.git
 %cd rh-window-monitor
-!pip install -q -r requirements.txt bitsandbytes
+!pip install -q -r requirements.txt "bitsandbytes>=0.44"
 ```
 
 ```python
