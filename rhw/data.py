@@ -58,7 +58,7 @@ def _rhbench_units(r, source, response_col, label, agentic):
         else:
             turns.append(turn(m["role"], m["content"]))
     cat = r.hacking_subcategory if label else ""
-    uid = f"{source}:{r.source_id}:{'hack' if label else 'clean'}"
+    uid = f"{source}:{r.Index}:{'hack' if label else 'clean'}"
     return make_unit(uid, source, label, cat, turns, n_task=len(prompt))
 
 
