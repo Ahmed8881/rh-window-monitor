@@ -38,7 +38,15 @@ def test_sliding_stride_and_overlap():
     assert wins[:4] == [(0, 4), (2, 6), (4, 8), (6, 10)]
 
 
-def test_sliding_every_turn_in_some_window():
+def test_cap_windows():
+    wins = windows.sliding_windows(40, 4)
+    capped = windows.cap_windows(wins, 8)
+    assert len(capped) == 8 and capped[0] == wins[0] and capped[-1] == wins[-1]
+    assert windows.cap_windows(wins[:5], 8) == wins[:5]
+
+
+def test_sliding_every_turn_in_some_window(monkeypatch):
+    monkeypatch.setattr(config, "MAX_WINDOWS", None)
     u = make_unit(13)
     texts = windows.sliding(u, TOK, 4)
     for i in range(13):

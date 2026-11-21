@@ -77,9 +77,20 @@ def sliding_windows(n, w):
     return [(s, s + w) for s in starts]
 
 
+def cap_windows(wins, m):
+    """At most m windows, evenly spaced, always keeping the first and last."""
+    if m is None or len(wins) <= m:
+        return wins
+    idx = sorted({round(i * (len(wins) - 1) / (m - 1)) for i in range(m)})
+    return [wins[i] for i in idx]
+
+
 def sliding(unit, tok, w):
     task, rest = split_task(unit)
-    return [clip(_join(task + rest[a:b]), tok)[0] for a, b in sliding_windows(len(rest), w)]
+    # shortcut: MAX_WINDOWS caps calls per unit for compute (MALT runs reach thousands of turns),
+    # so windows no longer cover every turn; set it to None when GPU time allows
+    wins = cap_windows(sliding_windows(len(rest), w), config.MAX_WINDOWS)
+    return [clip(_join(task + rest[a:b]), tok)[0] for a, b in wins]
 
 
 def tool_only(unit, tok):

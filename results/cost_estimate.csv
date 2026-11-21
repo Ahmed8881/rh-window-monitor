@@ -1,0 +1,9 @@
+condition,new_calls,approx_tokens_M,est_gpu_hours,max_windows
+full,2939,8.44,2.37,8
+tool_only,1088,6.69,1.88,8
+last_2,1088,1.28,0.36,8
+last_4,1088,1.75,0.49,8
+last_8,1088,2.81,0.79,8
+sliding_2,8618,10.27,2.88,8
+sliding_4,8577,14.91,4.18,8
+sliding_8,8071,22.14,6.21,8

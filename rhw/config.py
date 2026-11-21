@@ -19,6 +19,8 @@ TAIL_TOKENS = 5500
 
 LAST_K = (2, 4, 8)
 WINDOW_SIZES = (2, 4, 8)
+# max sliding windows scored per unit (evenly spaced); None = all. Set for free-Colab compute.
+MAX_WINDOWS = 8
 TOOL_OUTPUT_CHARS = 300
 
 SEEDS = (0, 1, 2)
