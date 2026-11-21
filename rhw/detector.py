@@ -69,8 +69,9 @@ class Cache:
         self.path = config.CACHE_DIR / model_id.split("/")[-1] / f"{condition}.jsonl"
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.data = {}
-        if self.path.exists():
-            for line in self.path.read_text(encoding="utf-8").splitlines():
+        # read every condition's file: identical texts (e.g. single-turn control) are scored once
+        for f in sorted(self.path.parent.glob("*.jsonl")):
+            for line in f.read_text(encoding="utf-8").splitlines():
                 if line.strip():
                     r = json.loads(line)
                     self.data[r["key"]] = r
